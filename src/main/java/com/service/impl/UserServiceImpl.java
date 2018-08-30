@@ -41,11 +41,11 @@ public class UserServiceImpl implements IUserService {
 
     public ServerResponse<String> register(User user) {
         ServerResponse serverResponse = this.checkValid(user.getUsername(), Const.USERNAME);
-        if (serverResponse.isSuccess()) {
+        if (!serverResponse.isSuccess()) {
             return ServerResponse.createByErrorMessage("用户名已存在");
         }
         serverResponse = this.checkValid(user.getEmail(), Const.EMAIL);
-        if (serverResponse.isSuccess()) {
+        if (!serverResponse.isSuccess()) {
             return ServerResponse.createByErrorMessage("email已存在");
         }
         user.setRole(Const.Role.ROLE_CUSTOMER);
@@ -59,16 +59,16 @@ public class UserServiceImpl implements IUserService {
 
     public ServerResponse<String> checkValid(String str, String type) {
         if (org.apache.commons.lang3.StringUtils.isNotBlank(type)) {
+            if (Const.USERNAME.equals(type)) {
+                int resultCount = userMapper.selectCountByName(str);
+                if (resultCount > 0) {
+                    return ServerResponse.createByErrorMessage("用户名已存在");
+                }
+            }
             if (Const.EMAIL.equals(type)) {
                 int resultCount = userMapper.selectCountByEmail(str);
                 if (resultCount > 0) {
                     return ServerResponse.createByErrorMessage("邮箱已存在");
-                }
-            }
-            if (Const.USERNAME.equals(str)) {
-                int resultCount = userMapper.selectCountByName("str");
-                if (resultCount > 0) {
-                    return ServerResponse.createByErrorMessage("用户名已存在");
                 }
             }
         } else {
@@ -79,7 +79,7 @@ public class UserServiceImpl implements IUserService {
 
     public ServerResponse selectQuestion(String username) {
         ServerResponse serverResponse = this.checkValid(username, Const.USERNAME);
-        if (!serverResponse.isSuccess()) {
+        if (serverResponse.isSuccess()) {
             return ServerResponse.createByErrorMessage("用户名不存在");
         }
         String question = userMapper.selectQuestion(username);
